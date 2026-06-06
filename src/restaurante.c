@@ -2,49 +2,93 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
-void *cliente(void *arg) {
-    ArgThread *args = (ArgThread *)arg;
-    int id = args->id;
-    int pedido_id = id*100;
+void *cliente(void *arg)
+{
+    ArgThread *args    = (ArgThread *)arg;
+    int        id      = args->id;
+    int        pedido  = id * 100;
 
-    while(1) {
-        sleep(1 + rand() % 3); // Simular tempo entre pedidos
+    while (1) {
+        sleep(1 + rand() % 3);
+        pedido++;
 
-        pedido_id++;
-        printf("Cliente %d fez pedido %d\n", id, pedido_id);
-        buffer_put(args->buf_pedidos, pedido_id);
-    
+        /* actualiza SDL antes de bloquear no buffer */
+        pthread_mutex_lock(args->estado->render_lock);
+        snprintf(args->estado->status_Clientes[id - 1], 32,
+                 "Cli.%d: pedido", id);
+        pthread_mutex_unlock(args->estado->render_lock);
+
+        buffer_put(args->buf_pedidos, pedido);
+
+        pthread_mutex_lock(args->estado->render_lock);
+        snprintf(args->estado->status_Clientes[id - 1], 32,
+                 "Cli.%d: espera", id);
+        args->estado->n_pedidos = buffer_count(args->buf_pedidos);
+        pthread_mutex_unlock(args->estado->render_lock);
     }
     return NULL;
 }
 
-void *cozinheiro(void *arg) {
+void *cozinheiro(void *arg)
+{
     ArgThread *args = (ArgThread *)arg;
-    int id = args->id;
+    int        id   = args->id;
 
-    while(1) {
-        int pedido_id = buffer_get(args->buf_pedidos);
-        printf("Cozinheiro %d a preparar pedido %d\n", id, pedido_id);
-        sleep(2 + rand() % 3); // Simular tempo de preparo
+    while (1) {
+        pthread_mutex_lock(args->estado->render_lock);
+        snprintf(args->estado->status_Cozinheiros[id - 1], 32,
+                 "Coz.%d: aguarda", id);
+        pthread_mutex_unlock(args->estado->render_lock);
 
-        buffer_put(args->buf_pratos, pedido_id);
-        printf("Cozinheiro %d pranto pronto! %d\n", id, pedido_id);
-        
+        int pedido = buffer_get(args->buf_pedidos);
+
+        pthread_mutex_lock(args->estado->render_lock);
+        snprintf(args->estado->status_Cozinheiros[id - 1], 32,
+                 "Coz.%d: prep.%d", id, pedido);
+        args->estado->n_pedidos = buffer_count(args->buf_pedidos);
+        pthread_mutex_unlock(args->estado->render_lock);
+
+        sleep(2 + rand() % 3);
+
+        buffer_put(args->buf_pratos, pedido);
+
+        pthread_mutex_lock(args->estado->render_lock);
+        snprintf(args->estado->status_Cozinheiros[id - 1], 32,
+                 "Coz.%d: livre", id);
+        args->estado->n_pratos = buffer_count(args->buf_pratos);
+        pthread_mutex_unlock(args->estado->render_lock);
     }
     return NULL;
 }
 
-void *empregado(void *arg) {
+void *empregado(void *arg)
+{
     ArgThread *args = (ArgThread *)arg;
-    int id = args->id;
+    int        id   = args->id;
 
-    while(1) {
-        int prato_id = buffer_get(args->buf_pratos);
-        printf("Empregado %d a entregar prato %d\n", id, prato_id);
-        sleep(1 + rand() % 2); // Simular tempo de entrega
+    while (1) {
+        pthread_mutex_lock(args->estado->render_lock);
+        snprintf(args->estado->status_Empregados[id - 1], 32,
+                 "Emp.%d: aguarda", id);
+        pthread_mutex_unlock(args->estado->render_lock);
 
-        printf("Empregado %d entregou prato %d\n", id, prato_id);
+        int prato = buffer_get(args->buf_pratos);
+
+        pthread_mutex_lock(args->estado->render_lock);
+        snprintf(args->estado->status_Empregados[id - 1], 32,
+                 "Emp.%d: entr.%d", id, prato);
+        args->estado->n_pratos = buffer_count(args->buf_pratos);
+        pthread_mutex_unlock(args->estado->render_lock);
+
+        sleep(1 + rand() % 2);
+
+        pthread_mutex_lock(args->estado->render_lock);
+        snprintf(args->estado->status_Empregados[id - 1], 32,
+                 "Emp.%d: livre", id);
+        args->estado->total_entregas++;
+        pthread_mutex_unlock(args->estado->render_lock);
     }
     return NULL;
 }
