@@ -70,7 +70,7 @@ sudo apt install build-essential libsdl2-dev libsdl2-ttf-dev
 ## Compilação
 
 ```bash
-gcc -o restaurante src/*.c -lpthread -lSDL2 -lSDL2_ttf
+make
 ```
 
 ## Execução
