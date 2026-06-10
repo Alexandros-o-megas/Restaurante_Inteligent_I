@@ -21,5 +21,6 @@ void buffer_destroy(Buffer *b);
 void buffer_put    (Buffer *b, int val);
 int  buffer_get    (Buffer *b);
 int  buffer_count  (Buffer *b);
+void buffer_snapshot(Buffer *b, int *out, int *count);
 
 #endif

@@ -36,7 +36,10 @@ void *cliente(void *arg)
         pthread_mutex_lock(args->estado->render_lock);
         snprintf(args->estado->status_Clientes[id - 1], 32,
                  "Cli.%d: espera", id);
-        args->estado->n_pedidos = buffer_count(args->buf_pedidos);
+        //args->estado->n_pedidos = buffer_count(args->buf_pedidos);
+        buffer_snapshot(args->buf_pedidos,
+                args->estado->pedidos_buf,
+                &args->estado->n_pedidos);
         sync_bloqueios(args);
         pthread_mutex_unlock(args->estado->render_lock);
     }
@@ -63,7 +66,11 @@ void *cozinheiro(void *arg)
         pthread_mutex_lock(args->estado->render_lock);
         snprintf(args->estado->status_Cozinheiros[id - 1], 32,
                  "Coz.%d: prep.%d", id, pedido);
-        args->estado->n_pedidos = buffer_count(args->buf_pedidos);
+        //args->estado->n_pedidos = buffer_count(args->buf_pedidos);
+        buffer_snapshot(args->buf_pedidos,
+                args->estado->pedidos_buf,
+                &args->estado->n_pedidos);
+
         sync_bloqueios(args);
         pthread_mutex_unlock(args->estado->render_lock);
 

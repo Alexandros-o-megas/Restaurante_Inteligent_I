@@ -80,3 +80,12 @@ int buffer_count(Buffer *b)
     pthread_mutex_unlock(&b->mutex);
     return c;
 }
+
+void buffer_snapshot(Buffer *b, int *out, int *count)
+{
+    pthread_mutex_lock(&b->mutex);
+    *count = b->count;
+    for (int i = 0; i < b->count; i++)
+        out[i] = b->data[(b->head + i) % BUFFER_SIZE];
+    pthread_mutex_unlock(&b->mutex);
+}

@@ -376,10 +376,8 @@ static void draw_frame(SDL_Renderer *ren,
 
     /* Buffer de pedidos */
     {
-        static int dummy[NUM_CLIENTES];
-        for (int i=0; i<e->n_pedidos && i<NUM_CLIENTES; i++) dummy[i]=i+1;
         draw_buffer_column(ren, fnt_sm, "BUFFER PEDIDOS",
-                           dummy, e->n_pedidos,
+                           e->pedidos_buf, e->n_pedidos,
                            g_col_x[1], y, cw, CH, &g_scroll_buf);
     }
 

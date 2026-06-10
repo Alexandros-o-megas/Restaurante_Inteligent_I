@@ -5,6 +5,8 @@
 #include <SDL2/SDL_ttf.h>
 #include <pthread.h>
 
+#include "buffer.h"
+
 #define WINDOW_WIDTH  900
 #define WINDOW_HEIGHT 600
 #define FPS_DELAY     33
@@ -26,6 +28,8 @@ typedef struct {
     int total_bloqueios;
 
     pthread_mutex_t *render_lock;
+
+    int pedidos_buf[BUFFER_SIZE]; //IDs reais no buffer
 } EstadoRestaurante;
 
 /* Tipos de entrada no log */
