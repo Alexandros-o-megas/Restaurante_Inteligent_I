@@ -1,4 +1,5 @@
 #include "restaurante.h"
+#include "render.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -6,19 +7,22 @@
 
 void *cliente(void *arg)
 {
-    ArgThread *args    = (ArgThread *)arg;
-    int        id      = args->id;
-    int        pedido  = id * 100;
+    ArgThread *args   = (ArgThread *)arg;
+    int        id     = args->id;
+    int        pedido = id * 100;
 
     while (1) {
         sleep(1 + rand() % 3);
         pedido++;
 
-        /* actualiza SDL antes de bloquear no buffer */
         pthread_mutex_lock(args->estado->render_lock);
         snprintf(args->estado->status_Clientes[id - 1], 32,
                  "Cli.%d: pedido", id);
         pthread_mutex_unlock(args->estado->render_lock);
+
+        char msg[128];
+        snprintf(msg, sizeof(msg), "Cliente %d fez pedido #%d", id, pedido);
+        render_log(msg, LOG_OK);
 
         buffer_put(args->buf_pedidos, pedido);
 
@@ -44,6 +48,10 @@ void *cozinheiro(void *arg)
 
         int pedido = buffer_get(args->buf_pedidos);
 
+        char msg[128];
+        snprintf(msg, sizeof(msg), "Cozinheiro %d preparando prato #%d", id, pedido);
+        render_log(msg, LOG_NORMAL);
+
         pthread_mutex_lock(args->estado->render_lock);
         snprintf(args->estado->status_Cozinheiros[id - 1], 32,
                  "Coz.%d: prep.%d", id, pedido);
@@ -53,6 +61,9 @@ void *cozinheiro(void *arg)
         sleep(2 + rand() % 3);
 
         buffer_put(args->buf_pratos, pedido);
+
+        snprintf(msg, sizeof(msg), "Cozinheiro %d finalizou prato #%d", id, pedido);
+        render_log(msg, LOG_OK);
 
         pthread_mutex_lock(args->estado->render_lock);
         snprintf(args->estado->status_Cozinheiros[id - 1], 32,
@@ -75,6 +86,10 @@ void *empregado(void *arg)
         pthread_mutex_unlock(args->estado->render_lock);
 
         int prato = buffer_get(args->buf_pratos);
+
+        char msg[128];
+        snprintf(msg, sizeof(msg), "Empregado %d entregou prato #%d", id, prato);
+        render_log(msg, LOG_OK);
 
         pthread_mutex_lock(args->estado->render_lock);
         snprintf(args->estado->status_Empregados[id - 1], 32,

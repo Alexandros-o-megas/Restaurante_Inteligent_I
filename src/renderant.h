@@ -10,13 +10,14 @@
 #define FPS_DELAY     33
 #define FONT_PATH     "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 
+/* Dimensões do sistema — definidas aqui para serem partilhadas */
 #define NUM_CLIENTES    10
 #define NUM_COZINHEIROS  5
 #define NUM_EMPREGADOS   3
 
 typedef struct {
-    int n_pedidos;          /* itens actuais no buffer de pedidos  */
-    int n_pratos;           /* itens actuais no buffer de pratos   */
+    int n_pedidos;
+    int n_pratos;
 
     char status_Clientes   [NUM_CLIENTES]   [32];
     char status_Cozinheiros[NUM_COZINHEIROS][32];
@@ -25,14 +26,8 @@ typedef struct {
     int total_entregas;
     int total_bloqueios;
 
-    pthread_mutex_t *render_lock;
+    pthread_mutex_t *render_lock; /* ponteiro — o mutex vive no main */
 } EstadoRestaurante;
-
-/* Tipos de entrada no log */
-typedef enum { LOG_NORMAL, LOG_WARN, LOG_OK } LogKind;
-
-/* Adiciona uma linha ao log (thread-safe; chamado das threads do restaurante) */
-void render_log(const char *msg, LogKind kind);
 
 void *thread_render(void *arg);
 
