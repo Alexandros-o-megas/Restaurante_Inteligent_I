@@ -16,7 +16,9 @@ pthread_mutex_t    render_lock = PTHREAD_MUTEX_INITIALIZER;
 static void init_sistema(void)
 {
     buffer_init(&buf_pedidos);
+    snprintf(buf_pedidos.nome, 32, "Pedidos");
     buffer_init(&buf_pratos);
+    snprintf(buf_pratos.nome, 32, "Pratos");
 
     memset(&estado, 0, sizeof(estado));
     estado.render_lock = &render_lock;

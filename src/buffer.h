@@ -4,26 +4,22 @@
 #include <semaphore.h>
 #include <pthread.h>
 
-#define BUF_SIZE 5
+#define BUFFER_SIZE 5
 
 typedef struct {
-    int dados[BUF_SIZE];
-    int in;
-    int out;
-
-    sem_t empty;
-    sem_t full;
+    int          data[BUFFER_SIZE];
+    int          head, tail, count;
+    sem_t        empty;   /* slots livres  */
+    sem_t        full;    /* slots cheios  */
     pthread_mutex_t mutex;
+    int          total_bloqueios; /* bloqueios detectados neste buffer */
+    char         nome[32]; /* para debug */
 } Buffer;
 
-void buffer_init(Buffer *b);
-
-void buffer_put(Buffer *b, int item);
-
-int buffer_get(Buffer *b);
-
-int buffer_count(Buffer *b);
-
+void buffer_init   (Buffer *b);
 void buffer_destroy(Buffer *b);
+void buffer_put    (Buffer *b, int val);
+int  buffer_get    (Buffer *b);
+int  buffer_count  (Buffer *b);
 
-#endif /* BUFFER_H */
+#endif
